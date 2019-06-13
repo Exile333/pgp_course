@@ -21,13 +21,13 @@
 #define GRAVITY_EPS 1.e-3
 
 #define sqr(x) ((x)*(x))
-#define CSC(call) {							\
-    cudaError err = call;						\
-    if(err != cudaSuccess) {						\
-        fprintf(stderr, "CUDA error in file '%s' in line %i: %s.\n",	\
-            __FILE__, __LINE__, cudaGetErrorString(err));		\
-        exit(1);							\
-    }									\
+#define CSC(call) {                            \
+    cudaError err = call;                        \
+    if(err != cudaSuccess) {                        \
+        fprintf(stderr, "CUDA error in file '%s' in line %i: %s.\n",    \
+            __FILE__, __LINE__, cudaGetErrorString(err));        \
+        exit(1);                            \
+    }                                    \
 } while (0)
 
 //functions definitions
@@ -44,7 +44,7 @@ __device__ double d_dx; //workaround to read from functor
 //TYPES AND FUNCTORS
 
 typedef struct {
-	double2 x,          //current coordinate
+    double2 x,          //current coordinate
             v,          //current speed
             best_x,     //current best local minimum
             f;          //current force applied
@@ -206,9 +206,9 @@ __global__ void k_draw_particles(uchar4 *pxla,
         int_point.x = (int)point.x;
         int_point.y = (int)point.y;
 
-		if (int_point.x > 0 && int_point.x < w && int_point.y > 0 && int_point.y < h){
-			pxla[int_point.y * w + int_point.x] = make_uchar4(255, 255, 255, 255);
-		}
+        if (int_point.x > 0 && int_point.x < w && int_point.y > 0 && int_point.y < h){
+            pxla[int_point.y * w + int_point.x] = make_uchar4(255, 255, 255, 255);
+        }
     }
 }
 
@@ -443,19 +443,19 @@ __global__ void k_iterate(particle_t *pa,
 /////////////////////////////////////////////////
 
 void update_scene(){
-	uchar4 *pxla;
+    uchar4 *pxla;
     double2 gbest_x, cam_center;
     particle_t gbest_particle, aaaaa;
-	size_t sz;
+    size_t sz;
     double scene_min_f, scene_max_f, gbest;
     particle_comparator_function comp_f;        //comparator for min/max
     particle_comparator_bl comp_bl;             //comparator for sort
-	auto s_time = std::chrono::high_resolution_clock::now();
-	auto e_time = std::chrono::high_resolution_clock::now();
+    auto s_time = std::chrono::high_resolution_clock::now();
+    auto e_time = std::chrono::high_resolution_clock::now();
 
     //bind array to cuda
-	CSC(cudaGraphicsMapResources(1, &cuda_res, 0));
-	CSC(cudaGraphicsResourceGetMappedPointer((void**) &pxla, &sz, cuda_res));
+    CSC(cudaGraphicsMapResources(1, &cuda_res, 0));
+    CSC(cudaGraphicsResourceGetMappedPointer((void**) &pxla, &sz, cuda_res));
 
     //get masses' center
     aaaaa.x.x = 0;
@@ -504,8 +504,8 @@ void update_scene(){
     if (!time_on){
         glutPostRedisplay();
         //unbind all
-	    CSC(cudaDeviceSynchronize());
-	    CSC(cudaGraphicsUnmapResources(1, &cuda_res, 0));
+        CSC(cudaDeviceSynchronize());
+        CSC(cudaGraphicsUnmapResources(1, &cuda_res, 0));
         return;
     }
     
@@ -535,47 +535,42 @@ void update_scene(){
                                          dx);
 
     //unbind all
-	CSC(cudaDeviceSynchronize());
-	CSC(cudaGraphicsUnmapResources(1, &cuda_res, 0));
+    CSC(cudaDeviceSynchronize());
+    CSC(cudaGraphicsUnmapResources(1, &cuda_res, 0));
     e_time = std::chrono::high_resolution_clock::now();
     printf("Best coords: x=%lf y=%lf\n", gvbest_x.x, gvbest_x.y);
     printf("Done in %ldmcs\n", std::chrono::duration_cast<std::chrono::microseconds>(e_time - s_time).count());
 
     //call draw
-	glutPostRedisplay();
+    glutPostRedisplay();
 }
 
 void display_func() {
-	glClearColor(0.0, 0.0, 0.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_BYTE, 0);	
-	glutSwapBuffers();
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_BYTE, 0);    
+    glutSwapBuffers();
 }
 
 void keys_handler(unsigned char key, int x, int y){
-	switch (key){
-	case '-':
-		scale_x += 0.5;
-		scale_y = scale_x * height / width;
-		break;
-	case '+':
-		if (scale_x > 1){
-			scale_x -= 0.5;
-			scale_y = scale_x * height / width;
-		}
-		break;
+    switch (key){
+    case '-':
+        scale_x += 0.5;
+        scale_y = scale_x * height / width;
+        break;
+    case '+':
+        if (scale_x > 1){
+            scale_x -= 0.5;
+            scale_y = scale_x * height / width;
+        }
+        break;
     case '/':
         grid_on = (grid_on + 1) % 2;
         break;
     case ' ':
         time_on = (time_on + 1) % 2;
         break;
-	};
-}
-
-void screen_reshaper(int new_w, int new_h){
-    width = new_w;
-    height = new_h;
+    };
 }
 
 void init_all(){
@@ -608,20 +603,20 @@ int main(int argc, char **argv){
     height = 600;
     scale_x = 5.;
     scale_y = scale_x * height / width;
-	printf("Number of particles (n) = ");
-	scanf("%d", &n);
-	printf("Inertia (w) = ");
-	scanf("%lf", &w);
-	printf("a1 = ");
-	scanf("%lf", &a1);
-	printf("a2 = ");
-	scanf("%lf", &a2);
-	printf("dx = ");
-	scanf("%lf", &dx);
-	printf("Time delta (dt) = ");
-	scanf("%lf", &dt);
-	printf("Antigravity f coefficient (g) = ");
-	scanf("%lf", &g);
+    printf("Number of particles (n) = ");
+    scanf("%d", &n);
+    printf("Inertia (w) = ");
+    scanf("%lf", &w);
+    printf("a1 = ");
+    scanf("%lf", &a1);
+    printf("a2 = ");
+    scanf("%lf", &a2);
+    printf("dx = ");
+    scanf("%lf", &dx);
+    printf("Time delta (dt) = ");
+    scanf("%lf", &dt);
+    printf("Antigravity f coefficient (g) = ");
+    scanf("%lf", &g);
 
     //allocate enough memory
     CSC(cudaMalloc(&pa, sizeof(*pa) * n));
@@ -638,35 +633,33 @@ int main(int argc, char **argv){
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
     glutInitWindowSize(width, height);
     glutCreateWindow("Heat map");
-	glutIdleFunc(update_scene);
-	glutDisplayFunc(display_func);
-	glutKeyboardFunc(keys_handler);
-    glutReshapeFunc(screen_reshaper);
-	//glutMouseFunc(MyMouseFunc);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluOrtho2D(0.0, (GLdouble)width, 0.0, (GLdouble)height);
+    glutIdleFunc(update_scene);
+    glutDisplayFunc(display_func);
+    glutKeyboardFunc(keys_handler);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0.0, (GLdouble)width, 0.0, (GLdouble)height);
 
-	glewInit();
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, vbo);
-	glBufferData(GL_PIXEL_UNPACK_BUFFER_ARB, width * height * sizeof(uchar4), NULL, GL_DYNAMIC_DRAW);
+    glewInit();
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, vbo);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER_ARB, width * height * sizeof(uchar4), NULL, GL_DYNAMIC_DRAW);
 
     //bind CUDA array pointer to openGL array pointer
-	CSC(cudaGraphicsGLRegisterBuffer(&cuda_res, vbo, cudaGraphicsMapFlagsWriteDiscard));
+    CSC(cudaGraphicsGLRegisterBuffer(&cuda_res, vbo, cudaGraphicsMapFlagsWriteDiscard));
 
     //start openGL main loop
-	glutMainLoop();
+    glutMainLoop();
 
     //dispose used resources
-	CSC(cudaGraphicsUnregisterResource(cuda_res));
-	glBindBuffer(1, vbo);
-	glDeleteBuffers(1, &vbo);
+    CSC(cudaGraphicsUnregisterResource(cuda_res));
+    glBindBuffer(1, vbo);
+    glDeleteBuffers(1, &vbo);
 
     //free all memory left
     CSC(cudaFree(pa));
     CSC(cudaFree(fa));
     CSC(cudaFree(rsa));
 
-	return 0;
+    return 0;
 }
